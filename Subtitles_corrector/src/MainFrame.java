@@ -1,6 +1,5 @@
 import java.awt.BorderLayout;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -18,6 +17,8 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
+import subtitles_corrector.util.SubtitlesUtil;
+
 public class MainFrame extends JFrame {
 
 	private static final long serialVersionUID = 1L;
@@ -30,6 +31,7 @@ public class MainFrame extends JFrame {
 	private JButton chooseSubtitlesFileButton;
 	private JButton chooseDestinationFileButton;
 	private JButton runButton;
+	private JButton openSubtitleButton;
 	private JPanel centerPanel;
 	private JPanel topPanel;
 	private JPanel runPanel;
@@ -37,7 +39,7 @@ public class MainFrame extends JFrame {
 	private JFileChooser destinationFileChooser;
 	private File subtitlesFile = null;
 	private File destinationFolder = null;
-	private Charset charset;
+	private Charset correctedFileCharset; //of the corrected file
 	
 	public MainFrame(int width, int height) {
 
@@ -51,7 +53,6 @@ public class MainFrame extends JFrame {
 		initComponents();
 		initFields();
 		addActionListeners();
-
 		addComponentsToPanelsAndAddPanels();
 		
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -63,6 +64,7 @@ public class MainFrame extends JFrame {
 		topPanel.add(chooseSubtitlesFileButton);
 		topPanel.add(choosenFileLabel);
 		runPanel.add(runButton);
+		runPanel.add(openSubtitleButton);
 		centerPanel.add(chooseDestinationFileButton);
 		centerPanel.add(choosenDestinationLabel);
 		
@@ -72,7 +74,7 @@ public class MainFrame extends JFrame {
 	}
 
 	private void initFields() {
-		this.charset = StandardCharsets.UTF_8;
+		this.correctedFileCharset = StandardCharsets.UTF_8;
 	}
 
 	private void addActionListeners() {
@@ -93,22 +95,22 @@ public class MainFrame extends JFrame {
 			boolean error = false;
 			
 			if(subtitlesFile == null) {
-				showMessage("Select subtitles file first and then click run!");
+				SubtitlesUtil.showMessage(this, "Select subtitles file first and then click run!");
 				error = true;
 			}else if(!subtitlesFile.getName().endsWith("srt") &&
 					 !subtitlesFile.getName().endsWith("txt") &&
 				     !subtitlesFile.getName().endsWith("sub")){
-				showMessage("File can be either in srt, sub or txt format!");
+				SubtitlesUtil.showMessage(this, "File can be either in srt, sub or txt format!");
 				error = true;
 			}
 			
 			if(destinationFolder == null) {
-				showMessage("Choose destination folder!");
+				SubtitlesUtil.showMessage(this, "Choose destination folder!");
 				error = true;
 			}
 			
 			if(!error) {
-				processAndSaveSubtitlesFile(subtitlesFile, charset);
+				processAndSaveSubtitlesFile(subtitlesFile, correctedFileCharset);
 			}
 			
 		});
@@ -126,6 +128,21 @@ public class MainFrame extends JFrame {
 			
 		});
 		
+		openSubtitleButton.addActionListener(eventAction -> {
+			
+			if(subtitlesFile == null) {
+				SubtitlesUtil.showMessage(this, "Select subtitles file!");
+			}else if(!subtitlesFile.getName().endsWith("srt") &&
+					 !subtitlesFile.getName().endsWith("txt") &&
+				     !subtitlesFile.getName().endsWith("sub")){
+				SubtitlesUtil.showMessage(this, "File can be either in srt, sub or txt format!");
+			}else {
+				SubtitleFrame subtitleFrame = new SubtitleFrame(400,700, subtitlesFile);
+			}
+			
+			
+			
+		});
 	}
 
 	private void initComponents() {
@@ -134,48 +151,32 @@ public class MainFrame extends JFrame {
 		chooseSubtitlesFileButton = new JButton("Choose file");
 		chooseDestinationFileButton = new JButton("Choose destination"); //where the corrected file will be saved
 		runButton = new JButton("Run");
+		openSubtitleButton = new JButton("Open subtitle");
 		
 		topPanel = new JPanel();
 		centerPanel = new JPanel();
 		runPanel = new JPanel();
 	}
 
-	private void showMessage(String text) {
-		JOptionPane.showMessageDialog(this, text);
-	}
-
 	/**
 	 * Parse, correct and save new subtitles file	
-	 * @param subtitleFile
+	 * @param subtitlesFile
 	 */
-	private void processAndSaveSubtitlesFile(File subtitleFile, Charset charset) {
+	private void processAndSaveSubtitlesFile(File subtitlesFile, Charset charset) {
 
-		Scanner scanner = null;
 		List<String> correctedFileLines = new ArrayList<String>();
-		try {
-			scanner = new Scanner(subtitleFile, "ISO_8859_1");
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		if (scanner != null) {
-
-			while (scanner.hasNextLine()) {
-
-				String line = scanner.nextLine();
-				processLineOfTextAndAddToArray(line, correctedFileLines);
-
-			}
-
+		List<String> subtitlesLines = SubtitlesUtil.loadSubtitlesIntoList(StandardCharsets.ISO_8859_1, subtitlesFile);
+		
+		for(String line : subtitlesLines) {
+			processLineOfTextAndAddToArray(line, correctedFileLines);
 		}
 		
 		// create new file and write lines of text to it
-		String newFilename = "corrected_" + subtitleFile.getName();
+		String newFilename = "corrected_" + subtitlesFile.getName();
 		File newFile = new File(destinationFolder, newFilename);
 
-		writeLinesToCorrectedFile(newFile, correctedFileLines, charset);
-		showMessage("File corrected!");
+		SubtitlesUtil.writeLinesToFile(newFile, correctedFileLines, charset);
+		SubtitlesUtil.showMessage(this, "File corrected!");
 
 	}
 
@@ -201,26 +202,6 @@ public class MainFrame extends JFrame {
 
 		correctedFileLines.add(correctedLine);
 
-	}
-
-	private void writeLinesToCorrectedFile(File newFile, List<String> correctedFileLines, Charset charset) {
-
-		Writer fileWriter = null;
-		try {
-			fileWriter = new OutputStreamWriter(new FileOutputStream(newFile), charset);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		for (String line : correctedFileLines) {
-			try {
-				fileWriter.append(line + System.lineSeparator());
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
 	}
 
 }
