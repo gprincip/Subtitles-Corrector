@@ -55,14 +55,23 @@ public class SubtitlesUtil {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
+		
 		for (String line : correctedFileLines) {
 			try {
+				
 				fileWriter.append(line + System.lineSeparator());
+				
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+		}
+		
+		try {
+			fileWriter.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 	
