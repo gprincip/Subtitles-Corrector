@@ -1,6 +1,8 @@
+package subtitles_corrector.frames;
+import java.awt.Color;
+import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.io.File;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,6 +11,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
@@ -21,24 +24,31 @@ public class SubtitleFrame extends JFrame{
 
 	private static final long serialVersionUID = 1L;
 	
+	private MainFrame mainFrame;
 	private int width;
 	private int height;
 	private JPanel subtitlesPanel;
+	private JPanel bottomPanel;
 	private JScrollPane scrollPane;
 	private List<JTextField> subtitlesTextFields; // used for displaying subtitles line by line
+	private JLabel detectedCharsetTextField;
 	private File subtitlesFile;
 	private List<String> subtitlesLines;
 	private JButton saveButton;
 	private JFileChooser saveFileChooser;
-	private Charset subtitlesFileCharset;
+	private String subtitlesFileCharset;
 	
 	public SubtitleFrame(int width, int height, File subtitlesFile) {
 		
-		super("Subtitles Manager");
+		super();
+		
+		this.mainFrame = mainFrame;
 		
 		this.width = width;
 		this.height = height;
 		this.subtitlesFile = subtitlesFile;
+		
+		setTitle(subtitlesFile.getAbsolutePath());
 		
 		initComponents();
 		initFields();
@@ -52,9 +62,11 @@ public class SubtitleFrame extends JFrame{
 
 
 	private void initFields() {
-		subtitlesFileCharset = StandardCharsets.ISO_8859_1;
+		subtitlesFileCharset = SubtitlesUtil.detectCharsetOfFile(subtitlesFile);
+		detectedCharsetTextField.setText("Detected charset: " + subtitlesFileCharset);
 		subtitlesLines = SubtitlesUtil.loadSubtitlesIntoList(subtitlesFileCharset, subtitlesFile);
 		subtitlesPanel.setLayout(new GridLayout(subtitlesLines.size(), 1));
+		bottomPanel.setLayout(new FlowLayout());
 		scrollPane.getVerticalScrollBar().setUnitIncrement(15);
 	}
 
@@ -74,12 +86,10 @@ public class SubtitleFrame extends JFrame{
 			
 			if(chooserState == JFileChooser.APPROVE_OPTION) {
 				destinationFolder = saveFileChooser.getSelectedFile();
+				File newFile = new File(destinationFolder, "saved_" + subtitlesFile.getName());
+				SubtitlesUtil.writeLinesToFile(newFile, lines, StandardCharsets.UTF_8);
+				SubtitlesUtil.showMessage(this, "File saved!");				
 			}
-			
-			File newFile = new File(destinationFolder, "saved_" + subtitlesFile.getName());
-			SubtitlesUtil.writeLinesToFile(newFile, lines, StandardCharsets.UTF_8);
-			
-			SubtitlesUtil.showMessage(this, "File saved!");
 			
 		});
 		
@@ -88,8 +98,10 @@ public class SubtitleFrame extends JFrame{
 	private void initComponents() {
 		setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
 		subtitlesPanel = new JPanel();
+		bottomPanel = new JPanel();
 		scrollPane = new JScrollPane(subtitlesPanel);
 		subtitlesTextFields = new ArrayList<JTextField>();
+		detectedCharsetTextField = new JLabel();
 		saveButton = new JButton(SAVE_BUTTON_LABEL);
 		saveFileChooser = new JFileChooser();
 		saveFileChooser.setFileSelectionMode(saveFileChooser.DIRECTORIES_ONLY);
@@ -97,17 +109,29 @@ public class SubtitleFrame extends JFrame{
 	
 	private void addComponentsToPanelsAndAddPanels() {
 		
-		for(int i=0; i < subtitlesLines.size(); i++) {
-			
+		for (int i = 0; i < subtitlesLines.size(); i++) {
+
 			JTextField newTextField = new JTextField();
+
+			// add stripes with different colors
+			if (i % 2 == 0) {
+				newTextField.setBackground(new Color(215, 230, 255));
+			} else {
+				newTextField.setBackground(new Color(230, 240, 255));
+			}
+
 			subtitlesTextFields.add(newTextField);
 			subtitlesPanel.add(newTextField);
 			newTextField.setText(subtitlesLines.get(i));
 		}
-		
+
 		add(scrollPane);
-		add(saveButton);
+		bottomPanel.add(saveButton);
+		bottomPanel.add(detectedCharsetTextField);
+		add(bottomPanel);
+
 	}
+	
 
 }
 

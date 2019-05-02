@@ -1,3 +1,4 @@
+package subtitles_corrector.frames;
 import java.awt.BorderLayout;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -60,6 +61,10 @@ public class MainFrame extends JFrame {
 		setVisible(true);
 	}
 
+	public File getSubtitlesFile() {
+		return this.subtitlesFile;
+	}
+	
 	private void addComponentsToPanelsAndAddPanels() {
 		topPanel.add(chooseSubtitlesFileButton);
 		topPanel.add(choosenFileLabel);
@@ -140,8 +145,6 @@ public class MainFrame extends JFrame {
 				SubtitleFrame subtitleFrame = new SubtitleFrame(400,700, subtitlesFile);
 			}
 			
-			
-			
 		});
 	}
 
@@ -165,7 +168,7 @@ public class MainFrame extends JFrame {
 	private void processAndSaveSubtitlesFile(File subtitlesFile, Charset charset) {
 
 		List<String> correctedFileLines = new ArrayList<String>();
-		List<String> subtitlesLines = SubtitlesUtil.loadSubtitlesIntoList(StandardCharsets.ISO_8859_1, subtitlesFile);
+		List<String> subtitlesLines = SubtitlesUtil.loadSubtitlesIntoList("ISO_8859_1", subtitlesFile);
 		
 		for(String line : subtitlesLines) {
 			processLineOfTextAndAddToArray(line, correctedFileLines);
