@@ -168,7 +168,8 @@ public class MainFrame extends JFrame {
 	private void processAndSaveSubtitlesFile(File subtitlesFile, Charset charset) {
 
 		List<String> correctedFileLines = new ArrayList<String>();
-		List<String> subtitlesLines = SubtitlesUtil.loadSubtitlesIntoList("ISO_8859_1", subtitlesFile);
+		String subtitlesFileCharset = SubtitlesUtil.detectCharsetOfFile(subtitlesFile);
+		List<String> subtitlesLines = SubtitlesUtil.loadSubtitlesIntoList(subtitlesFileCharset, subtitlesFile);
 		
 		for(String line : subtitlesLines) {
 			processLineOfTextAndAddToArray(line, correctedFileLines);
