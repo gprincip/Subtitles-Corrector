@@ -40,7 +40,7 @@ public class MainFrame extends JFrame {
 	private JFileChooser destinationFileChooser;
 	private File subtitlesFile = null;
 	private File destinationFolder = null;
-	private Charset correctedFileCharset; //of the corrected file
+	private String correctedFileCharset; //of the corrected file
 	
 	public MainFrame(int width, int height) {
 
@@ -79,7 +79,7 @@ public class MainFrame extends JFrame {
 	}
 
 	private void initFields() {
-		this.correctedFileCharset = StandardCharsets.UTF_8;
+		this.correctedFileCharset = "UTF-8";
 	}
 
 	private void addActionListeners() {
@@ -165,7 +165,7 @@ public class MainFrame extends JFrame {
 	 * Parse, correct and save new subtitles file	
 	 * @param subtitlesFile
 	 */
-	private void processAndSaveSubtitlesFile(File subtitlesFile, Charset charset) {
+	private void processAndSaveSubtitlesFile(File subtitlesFile, String charset) {
 
 		List<String> correctedFileLines = new ArrayList<String>();
 		String subtitlesFileCharset = SubtitlesUtil.detectCharsetOfFile(subtitlesFile);
