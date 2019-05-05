@@ -142,7 +142,7 @@ public class MainFrame extends JFrame {
 				     !subtitlesFile.getName().endsWith("sub")){
 				SubtitlesUtil.showMessage(this, "File can be either in srt, sub or txt format!");
 			}else {
-				SubtitleFrame subtitleFrame = new SubtitleFrame(600,700, subtitlesFile);
+				SubtitleFrame subtitleFrame = new SubtitleFrame(700,700, subtitlesFile);
 			}
 			
 		});

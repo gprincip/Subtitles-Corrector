@@ -64,8 +64,8 @@ public class SubtitleFrame extends JFrame{
 		initComponents();
 		initFields();
 		addActionListeners();
-		addPanels();
 		displaySubtitles(subtitleUnits);
+		addPanels();
 		
 		setVisible(true);
 		setSize(width, height);
@@ -153,11 +153,13 @@ public class SubtitleFrame extends JFrame{
 		 * from subtitle unit (index, from, to, text)
 		 * */
 		
-		//TODO: fix component sizes not to be hardcoded
 		int indexPanelWidth = 40;
 		int startPanelWidth = 100;
 		int endPanelWidth = 100;
-		int textPanelWidth = 400;
+		int textPanelWidth = 300;
+		
+		int addButtonWidth = 45;
+		int addButtonHeight = 20;
 		
 		int characterHeight = 18; //TODO hight of one character. Make this dinamic, so text areas expand if there are more then one line of code
 		//int textPanelHeight = 36;
@@ -207,8 +209,15 @@ public class SubtitleFrame extends JFrame{
 		headingRow.add(startHeadingPanel);
 		headingRow.add(endHeadingPanel);
 		headingRow.add(textHeadingPanel);
+		
+		//creates empty panel for heading row filling up the space in 5th cell instead of add button
+		//without this empty cell there are alignment problems with heading row and rest of the rows
+		JPanel emptyPanelForButton = new JPanel();
+		emptyPanelForButton.setBorder(BorderFactory.createEmptyBorder(addButtonHeight/2, addButtonWidth/2, addButtonHeight/2, addButtonWidth/2));
+		headingRow.add(emptyPanelForButton);
+		
 		subtitlesPanel.add(headingRow);
-
+		
 		int colorCounter = 0;
 		
 		for(SubtitleUnit subUnit : subtitleUnits){
@@ -282,7 +291,12 @@ public class SubtitleFrame extends JFrame{
 			oneRow.add(fromPanel);
 			oneRow.add(toPanel);
 			oneRow.add(textPanel);
-			//oneRow.setBackground(new Color(215, 230, 255));
+			
+			JPanel addButtonPanel = new JPanel();
+			JButton addButon = new JButton("+");
+			addButon.setPreferredSize(new Dimension(addButtonWidth,addButtonHeight));
+			addButtonPanel.add(addButon);
+			oneRow.add(addButtonPanel);
 			
 			subtitleUnitPanels.add(oneRow);
 			subtitlesPanel.add(oneRow);
