@@ -24,10 +24,17 @@ import subtitles_corrector.util.SubtitlesUtil;
 public class SubtitleFrame extends JFrame{
 
 	private static final String SAVE_BUTTON_LABEL = "Save subtitles";
-
+	/**
+	 * Color used for stripes in subtitles panel */
+	private static final Color evenColor = new Color(215, 230, 255);
+	/**
+	 * Color used for stripes in subtitles panel */
+	private static final Color oddColor = new Color(235, 245, 255);
+	
+	private static final Color headingRowColor = new Color(20, 170, 220);
+	
 	private static final long serialVersionUID = 1L;
 	
-	private MainFrame mainFrame;
 	private int width;
 	private int height;
 	private JPanel subtitlesPanel;
@@ -57,6 +64,7 @@ public class SubtitleFrame extends JFrame{
 		initFields();
 		addActionListeners();
 		addPanels();
+		displaySubtitles(subtitleUnits);
 
 		setSize(width, height);
 		setVisible(true);
@@ -70,7 +78,6 @@ public class SubtitleFrame extends JFrame{
 		subtitlesLines = SubtitlesUtil.loadSubtitlesIntoList(subtitlesFileCharset, subtitlesFile);
 		subtitleUnits = SubtitlesUtil.linesOfTextToListOfSubtitleUnits(subtitlesLines);
 		subtitlesPanel.setLayout(new GridLayout(subtitleUnits.size() + 1, 1)); //+1 for heading row
-		displaySubtitles(subtitleUnits);
 		bottomPanel.setLayout(new FlowLayout());
 		scrollPane.getVerticalScrollBar().setUnitIncrement(15);
 	}
@@ -79,14 +86,13 @@ public class SubtitleFrame extends JFrame{
 	private void addActionListeners() {
 		
 		saveButton.addActionListener(eventAction -> {
-			
-			List<String> lines = new ArrayList<String>();
-			
+						
 			int chooserState = saveFileChooser.showOpenDialog(this);
 			
 			File destinationFolder = null;
 			
 			if(chooserState == JFileChooser.APPROVE_OPTION) {
+				
 				destinationFolder = saveFileChooser.getSelectedFile();
 				File newFile = new File(destinationFolder, "saved_" + subtitlesFile.getName());
 				
@@ -129,45 +135,59 @@ public class SubtitleFrame extends JFrame{
 	 */
 	private void displaySubtitles(List<SubtitleUnit> subtitleUnits) {
 		
+		/*
+		 * two main panels - subtitles panel and bottom panel
+		 * bottom panel - save button and detect charset textfield
+		 * subtitles panel - grid layout with one column and subtitleUnits.size() + 1 rows
+		 * every row has box layout and consists of 4 panels every panel has one attribute
+		 * from subtitle unit (index, from, to, text)
+		 * */
+		
 		//TODO: fix component sizes not to be hardcoded
-		int panelWidth = 18;
-		int panelHeight = 18;
+		int indexPanelWidth = 40;
+		int startPanelWidth = 100;
+		int endPanelWidth = 100;
+		int textPanelWidth = 400;
+		
+		int panelHeight = 18; //TODO hight of one character. Make this dinamic, so text areas expand if there are more then one line of code
 		int textPanelHeight = 36;
 		int headingRowHeight = 25;
+		
+		int subtitleAttributesMarginSize = 10; //make panels bigger the components inside them so we don't get visual glitches
 		
 		JLabel indexLabel = new JLabel("No.");
 		JLabel startLabel = new JLabel("start");
 		JLabel endLabel = new JLabel("end");
 		JLabel textLabel = new JLabel("text");
 		
-		indexLabel.setPreferredSize(new Dimension(40, headingRowHeight));
-		startLabel.setPreferredSize(new Dimension(100, headingRowHeight));
-		endLabel.setPreferredSize(new Dimension(100, headingRowHeight));
-		textLabel.setPreferredSize(new Dimension(100, headingRowHeight));
+		indexLabel.setPreferredSize(new Dimension(indexPanelWidth, headingRowHeight));
+		startLabel.setPreferredSize(new Dimension(startPanelWidth, headingRowHeight));
+		endLabel.setPreferredSize(new Dimension(endPanelWidth, headingRowHeight));
+		//textLabel.setPreferredSize(new Dimension(30, headingRowHeight)); //not needed for now
 		
 		JPanel indexHeadingPanel = new JPanel();
-		indexHeadingPanel.setPreferredSize(new Dimension(40, headingRowHeight));
+		indexHeadingPanel.setPreferredSize(new Dimension(indexPanelWidth + subtitleAttributesMarginSize, headingRowHeight));
 		indexHeadingPanel.setLayout(new FlowLayout(FlowLayout.LEFT)); indexHeadingPanel.setBorder(BorderFactory.createMatteBorder(0, 1, 0, 1, Color.BLACK));
 		indexHeadingPanel.add(indexLabel);
-		indexHeadingPanel.setBackground(new Color(20, 170, 220));
+		indexHeadingPanel.setBackground(headingRowColor);
 		
 		JPanel startHeadingPanel = new JPanel(); startHeadingPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, Color.BLACK));
-		startHeadingPanel.setPreferredSize(new Dimension(100, headingRowHeight)); 
+		startHeadingPanel.setPreferredSize(new Dimension(startPanelWidth + subtitleAttributesMarginSize, headingRowHeight)); 
 		startHeadingPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
 		startHeadingPanel.add(startLabel);
-		startHeadingPanel.setBackground(new Color(20, 170, 220));
+		startHeadingPanel.setBackground(headingRowColor);
 		
 		JPanel endHeadingPanel = new JPanel(); 
-		endHeadingPanel.setPreferredSize(new Dimension(100, headingRowHeight)); 
+		endHeadingPanel.setPreferredSize(new Dimension(endPanelWidth + subtitleAttributesMarginSize, headingRowHeight)); 
 		endHeadingPanel.setLayout(new FlowLayout(FlowLayout.LEFT)); endHeadingPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, Color.BLACK));
 		endHeadingPanel.add(endLabel);
-		endHeadingPanel.setBackground(new Color(20, 170, 220));
+		endHeadingPanel.setBackground(headingRowColor);
 		
 		JPanel textHeadingPanel = new JPanel(); 
-		textHeadingPanel.setPreferredSize(new Dimension(400, headingRowHeight)); 
+		textHeadingPanel.setPreferredSize(new Dimension(textPanelWidth + subtitleAttributesMarginSize, headingRowHeight)); 
 		textHeadingPanel.setLayout(new FlowLayout(FlowLayout.LEFT)); textHeadingPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, Color.BLACK));
 		textHeadingPanel.add(textLabel);
-		textHeadingPanel.setBackground(new Color(20, 170, 220));
+		textHeadingPanel.setBackground(headingRowColor);
 		
 		JPanel headingRow = new JPanel();
 		headingRow.setLayout(new BoxLayout(headingRow, BoxLayout.X_AXIS));
@@ -180,8 +200,6 @@ public class SubtitleFrame extends JFrame{
 		subtitlesPanel.add(headingRow);
 
 		int colorCounter = 0;
-		Color evenColor = new Color(215, 230, 255);
-		Color oddColor = new Color(230, 240, 255);
 		
 		for(SubtitleUnit subUnit : subtitleUnits){
 			
@@ -201,40 +219,40 @@ public class SubtitleFrame extends JFrame{
 			
 			JTextArea index = new JTextArea();
 			textAreas.add(index);
-			index.setPreferredSize(new Dimension(40, panelHeight));
+			index.setPreferredSize(new Dimension(indexPanelWidth, panelHeight));
 			JPanel indexPanel = new JPanel();
 			indexPanel.add(index); 
-			indexPanel.setPreferredSize(new Dimension(40, panelHeight));
+			indexPanel.setPreferredSize(new Dimension(indexPanelWidth + subtitleAttributesMarginSize, panelHeight));
 			indexPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
 			indexPanel.setBackground(currentRowColor);
 			indexPanel.setBorder(BorderFactory.createMatteBorder(0, 1, 0, 1, Color.BLACK));
 			
 			JTextArea from = new JTextArea(); 
 			textAreas.add(from);
-			from.setPreferredSize(new Dimension(100, panelHeight));
+			from.setPreferredSize(new Dimension(startPanelWidth, panelHeight));
 			JPanel fromPanel = new JPanel(); 
 			fromPanel.add(from); 
-			fromPanel.setPreferredSize(new Dimension(100, panelHeight));
+			fromPanel.setPreferredSize(new Dimension(startPanelWidth + subtitleAttributesMarginSize, panelHeight));
 			fromPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
 			fromPanel.setBackground(currentRowColor);
 			fromPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, Color.BLACK));
 			
 			JTextArea to = new JTextArea();
 			textAreas.add(to);
-			to.setPreferredSize(new Dimension(100, panelHeight));
+			to.setPreferredSize(new Dimension(endPanelWidth, panelHeight));
 			JPanel toPanel = new JPanel(); 
 			toPanel.add(to); 
-			toPanel.setPreferredSize(new Dimension(100, panelHeight));
+			toPanel.setPreferredSize(new Dimension(endPanelWidth + subtitleAttributesMarginSize, panelHeight));
 			toPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
 			toPanel.setBackground(currentRowColor);
 			toPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, Color.BLACK));
 			
 			JTextArea text = new JTextArea();
 			textAreas.add(text);
-			text.setPreferredSize(new Dimension(400, textPanelHeight));
+			text.setPreferredSize(new Dimension(textPanelWidth, textPanelHeight));
 			JPanel textPanel = new JPanel(); 
 			textPanel.add(text); 
-			textPanel.setPreferredSize(new Dimension(400, textPanelHeight));
+			textPanel.setPreferredSize(new Dimension(textPanelWidth + subtitleAttributesMarginSize, textPanelHeight));
 			textPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
 			textPanel.setBackground(currentRowColor);
 			textPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, Color.BLACK));
