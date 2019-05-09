@@ -3,11 +3,14 @@ package subtitles_corrector.frames;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -210,11 +213,11 @@ public class SubtitleFrame extends JFrame{
 		headingRow.add(endHeadingPanel);
 		headingRow.add(textHeadingPanel);
 		
-		//creates empty panel for heading row filling up the space in 5th cell instead of add button
-		//without this empty cell there are alignment problems with heading row and rest of the rows
-		JPanel emptyPanelForButton = new JPanel();
-		emptyPanelForButton.setBorder(BorderFactory.createEmptyBorder(addButtonHeight/2, addButtonWidth/2, addButtonHeight/2, addButtonWidth/2));
-		headingRow.add(emptyPanelForButton);
+		JPanel addButtonPanelHeading = new JPanel();
+		JButton addButonHeading = new JButton("+");
+		addButonHeading.setPreferredSize(new Dimension(addButtonWidth,addButtonHeight));
+		addButtonPanelHeading.add(addButonHeading);
+		headingRow.add(addButtonPanelHeading);
 		
 		subtitlesPanel.add(headingRow);
 		
@@ -277,6 +280,42 @@ public class SubtitleFrame extends JFrame{
 			textPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
 			textPanel.setBackground(currentRowColor);
 			textPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, Color.BLACK));
+			text.addKeyListener(new KeyListener() {
+				
+				@Override
+				public void keyTyped(KeyEvent e) {
+
+				}
+				
+				@Override
+				public void keyReleased(KeyEvent e) {
+
+				}
+				
+				@Override
+				public void keyPressed(KeyEvent e) {
+					//key 10 - enter
+					if(e.getKeyCode() == 10) {
+						textPanel.setPreferredSize(new Dimension(textPanel.getWidth(), textPanel.getHeight() + 18));
+						textPanel.setMinimumSize(new Dimension(textPanel.getWidth(), textPanel.getHeight() + 18));
+						textPanel.setMaximumSize(new Dimension(textPanel.getWidth(), textPanel.getHeight() + 18));
+
+						text.setPreferredSize(new Dimension(text.getWidth(), text.getHeight() + 18));
+					//key 8 - backspace
+					} else if (e.getKeyCode() == 8) {
+						//allow vertical resize only if panel is more then one character tall
+						if (textPanel.getHeight() > 30) { //TODO: ajust this value to be exactly one char tall
+							textPanel.setPreferredSize(new Dimension(textPanel.getWidth(), textPanel.getHeight() - 18));
+							textPanel.setMinimumSize(new Dimension(textPanel.getWidth(), textPanel.getHeight() - 18));
+							textPanel.setMaximumSize(new Dimension(textPanel.getWidth(), textPanel.getHeight() - 18));
+
+							text.setPreferredSize(new Dimension(text.getWidth(), text.getHeight() - 18));
+						}
+					}
+
+					
+				}
+			});
 			
 			index.setText(subUnit.getIndex().toString());
 			from.setText(subUnit.getTimeFrom());
@@ -285,6 +324,7 @@ public class SubtitleFrame extends JFrame{
 			
 			JPanel oneRow = new JPanel();
 			oneRow.setLayout(new BoxLayout(oneRow, BoxLayout.X_AXIS));
+			//oneRow.setLayout(new FlowLayout(FlowLayout.LEFT));
 			oneRow.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.BLACK));
 			
 			oneRow.add(indexPanel);
