@@ -3,6 +3,7 @@ package subtitles_corrector.frames;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.File;
@@ -10,7 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.BorderFactory;
-import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -280,6 +280,7 @@ public class SubtitleFrame extends JFrame{
 			textPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
 			textPanel.setBackground(currentRowColor);
 			textPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, Color.BLACK));
+
 			text.addKeyListener(new KeyListener() {
 				
 				@Override
@@ -296,25 +297,27 @@ public class SubtitleFrame extends JFrame{
 				public void keyPressed(KeyEvent e) {
 					//key 10 - enter
 					if(e.getKeyCode() == 10) {
-						textPanel.setPreferredSize(new Dimension(textPanel.getWidth(), textPanel.getHeight() + 18));
-						textPanel.setMinimumSize(new Dimension(textPanel.getWidth(), textPanel.getHeight() + 18));
-						textPanel.setMaximumSize(new Dimension(textPanel.getWidth(), textPanel.getHeight() + 18));
-
-						text.setPreferredSize(new Dimension(text.getWidth(), text.getHeight() + 18));
+						
+						Dimension textPanelDimension = textPanel.getPreferredSize();
+						textPanel.setPreferredSize(new Dimension(textPanelDimension.width, textPanelDimension.height + 18));
+						
+						Dimension textDimension = text.getPreferredSize();
+						text.setPreferredSize(new Dimension(textDimension.width, textDimension.height + 18));
+						
 					//key 8 - backspace
 					} else if (e.getKeyCode() == 8) {
 						//allow vertical resize only if panel is more then one character tall
 						if (textPanel.getHeight() > 30) { //TODO: ajust this value to be exactly one char tall
-							textPanel.setPreferredSize(new Dimension(textPanel.getWidth(), textPanel.getHeight() - 18));
-							textPanel.setMinimumSize(new Dimension(textPanel.getWidth(), textPanel.getHeight() - 18));
-							textPanel.setMaximumSize(new Dimension(textPanel.getWidth(), textPanel.getHeight() - 18));
-
-							text.setPreferredSize(new Dimension(text.getWidth(), text.getHeight() - 18));
+							
+							Dimension textPanelDimension = textPanel.getPreferredSize();
+							textPanel.setPreferredSize(new Dimension(textPanelDimension.width, textPanelDimension.height - 18));
+							
+							Dimension textDimension = text.getPreferredSize();
+							text.setPreferredSize(new Dimension(textDimension.width, textDimension.height - 18));
 						}
 					}
-
-					
 				}
+				
 			});
 			
 			index.setText(subUnit.getIndex().toString());
@@ -326,7 +329,7 @@ public class SubtitleFrame extends JFrame{
 			oneRow.setLayout(new BoxLayout(oneRow, BoxLayout.X_AXIS));
 			//oneRow.setLayout(new FlowLayout(FlowLayout.LEFT));
 			oneRow.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.BLACK));
-			
+            
 			oneRow.add(indexPanel);
 			oneRow.add(fromPanel);
 			oneRow.add(toPanel);
