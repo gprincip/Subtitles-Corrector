@@ -306,9 +306,11 @@ public class SubtitleFrame extends JFrame{
 						
 					//key 8 - backspace
 					} else if (e.getKeyCode() == 8) {
-						//allow vertical resize only if panel is more then one character tall
-						if (textPanel.getHeight() > 30) { //TODO: ajust this value to be exactly one char tall
-							
+						//allow vertical resize only if panel is more then numberOfLines * characterSize tall and not smaller then characterSize
+						int numberOfLines = text.getText().split("\n").length;
+						int condition = numberOfLines > 1 ? numberOfLines * 30 : 30;
+						if (textPanel.getHeight() > condition) { //TODO: ajust this value to be exactly one char tall
+
 							Dimension textPanelDimension = textPanel.getPreferredSize();
 							textPanel.setPreferredSize(new Dimension(textPanelDimension.width, textPanelDimension.height - 18));
 							
