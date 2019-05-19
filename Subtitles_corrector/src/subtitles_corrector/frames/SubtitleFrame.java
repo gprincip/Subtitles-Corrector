@@ -3,7 +3,7 @@ package subtitles_corrector.frames;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.GridBagConstraints;
+import java.awt.LayoutManager;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.File;
@@ -13,13 +13,16 @@ import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.border.Border;
 
+import subtitles_corrector.model.ButtonWrapper;
 import subtitles_corrector.model.SubtitleUnit;
 import subtitles_corrector.threads.DelayedActionThread;
 import subtitles_corrector.util.SubtitlesUtil;
@@ -53,6 +56,7 @@ public class SubtitleFrame extends JFrame{
 	private JButton saveButton;
 	private JFileChooser saveFileChooser;
 	private String subtitlesFileCharset;
+	private List<ButtonWrapper> addButtons;
 	
 	public SubtitleFrame(int width, int height, File subtitlesFile) {
 		
@@ -93,6 +97,7 @@ public class SubtitleFrame extends JFrame{
 		subtitlesPanel.setLayout(new BoxLayout(subtitlesPanel, BoxLayout.Y_AXIS));
 		bottomPanel.setLayout(new FlowLayout());
 		scrollPane.getVerticalScrollBar().setUnitIncrement(15);
+		addButtons = new ArrayList<ButtonWrapper>();
 	}
 
 
@@ -170,59 +175,16 @@ public class SubtitleFrame extends JFrame{
 		
 		int marginSize = 10; //make panels wider then the components inside them so we don't get visual glitches
 		
-		JLabel indexLabel = new JLabel("No.");
-		JLabel startLabel = new JLabel("start");
-		JLabel endLabel = new JLabel("end");
-		JLabel textLabel = new JLabel("text");
-		
-		indexLabel.setPreferredSize(new Dimension(indexPanelWidth, headingRowHeight));
-		startLabel.setPreferredSize(new Dimension(startPanelWidth, headingRowHeight));
-		endLabel.setPreferredSize(new Dimension(endPanelWidth, headingRowHeight));
-		//textLabel.setPreferredSize(new Dimension(30, headingRowHeight)); //not needed for now
-		
-		JPanel indexHeadingPanel = new JPanel();
-		indexHeadingPanel.setPreferredSize(new Dimension(indexPanelWidth + marginSize, headingRowHeight + marginSize));
-		indexHeadingPanel.setLayout(new FlowLayout(FlowLayout.LEFT)); indexHeadingPanel.setBorder(BorderFactory.createMatteBorder(0, 1, 0, 1, Color.BLACK));
-		indexHeadingPanel.add(indexLabel);
-		indexHeadingPanel.setBackground(headingRowColor);
-		
-		JPanel startHeadingPanel = new JPanel(); startHeadingPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, Color.BLACK));
-		startHeadingPanel.setPreferredSize(new Dimension(startPanelWidth + marginSize, headingRowHeight + marginSize)); 
-		startHeadingPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
-		startHeadingPanel.add(startLabel);
-		startHeadingPanel.setBackground(headingRowColor);
-		
-		JPanel endHeadingPanel = new JPanel(); 
-		endHeadingPanel.setPreferredSize(new Dimension(endPanelWidth + marginSize, headingRowHeight + marginSize)); 
-		endHeadingPanel.setLayout(new FlowLayout(FlowLayout.LEFT)); endHeadingPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, Color.BLACK));
-		endHeadingPanel.add(endLabel);
-		endHeadingPanel.setBackground(headingRowColor);
-		
-		JPanel textHeadingPanel = new JPanel(); 
-		textHeadingPanel.setPreferredSize(new Dimension(textPanelWidth + marginSize, headingRowHeight + marginSize)); 
-		textHeadingPanel.setLayout(new FlowLayout(FlowLayout.LEFT)); textHeadingPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, Color.BLACK));
-		textHeadingPanel.add(textLabel);
-		textHeadingPanel.setBackground(headingRowColor);
-		
 		JPanel headingRow = new JPanel();
 		headingRow.setLayout(new BoxLayout(headingRow, BoxLayout.X_AXIS));
 		headingRow.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.BLACK));
 		
-		headingRow.add(indexHeadingPanel);
-		headingRow.add(startHeadingPanel);
-		headingRow.add(endHeadingPanel);
-		headingRow.add(textHeadingPanel);
-		
-		JPanel addButtonPanelHeading = new JPanel();
-		JButton addButonHeading = new JButton("+");
-		addButonHeading.setPreferredSize(new Dimension(addButtonWidth,addButtonHeight));
-		addButtonPanelHeading.add(addButonHeading);
-		headingRow.add(addButtonPanelHeading);
-		
+		setupHeadingRow(headingRow, indexPanelWidth, startPanelWidth, endPanelWidth, textPanelWidth, addButtonWidth, addButtonHeight, marginSize, headingRowHeight);
+				
 		subtitlesPanel.add(headingRow);
 		
 		int colorCounter = 0;
-		
+		int addButtonRowIndex = 0;
 		for(SubtitleUnit subUnit : subtitleUnits){
 						
 			int panelHeight = characterHeight * (subUnit.getText().split(NEW_LINE_SEPARATOR).length);
@@ -238,8 +200,15 @@ public class SubtitleFrame extends JFrame{
 				colorCounter = 0;
 			}
 			
+			JPanel oneRow = new JPanel();
+			oneRow.setLayout(new BoxLayout(oneRow, BoxLayout.X_AXIS));
+			//oneRow.setLayout(new FlowLayout(FlowLayout.LEFT));
+			oneRow.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.BLACK));
+			
 			//make 4 textfields representing data for one subtitle unit
 			//create panel for each component so size can be manualy adjusted using setPreferedSize
+			
+			setupRows(oneRow, indexPanelWidth, startPanelWidth, endPanelWidth, textPanelWidth, addButtonWidth, addButtonHeight, marginSize, headingRowHeight);
 			
 			JTextArea index = new JTextArea();			
 			textAreas.add(index);
@@ -281,56 +250,14 @@ public class SubtitleFrame extends JFrame{
 			textPanel.setBackground(currentRowColor);
 			textPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, Color.BLACK));
 
-			text.addKeyListener(new KeyListener() {
-				
-				@Override
-				public void keyTyped(KeyEvent e) {
-
-				}
-				
-				@Override
-				public void keyReleased(KeyEvent e) {
-
-				}
-				
-				@Override
-				public void keyPressed(KeyEvent e) {
-					//key 10 - enter
-					if(e.getKeyCode() == 10) {
-						
-						Dimension textPanelDimension = textPanel.getPreferredSize();
-						textPanel.setPreferredSize(new Dimension(textPanelDimension.width, textPanelDimension.height + 18));
-						
-						Dimension textDimension = text.getPreferredSize();
-						text.setPreferredSize(new Dimension(textDimension.width, textDimension.height + 18));
-						
-					//key 8 - backspace
-					} else if (e.getKeyCode() == 8) {
-						//allow vertical resize only if panel is more then numberOfLines * characterSize tall and not smaller then characterSize
-						int numberOfLines = text.getText().split("\n").length;
-						int condition = numberOfLines > 1 ? numberOfLines * 30 : 30;
-						if (textPanel.getHeight() > condition) { //TODO: ajust this value to be exactly one char tall
-
-							Dimension textPanelDimension = textPanel.getPreferredSize();
-							textPanel.setPreferredSize(new Dimension(textPanelDimension.width, textPanelDimension.height - 18));
-							
-							Dimension textDimension = text.getPreferredSize();
-							text.setPreferredSize(new Dimension(textDimension.width, textDimension.height - 18));
-						}
-					}
-				}
-				
-			});
+			setSubtitleTextActionListeners(text, textPanel);
 			
-			index.setText(subUnit.getIndex().toString());
+			index.setText(subUnit.getSubtitleIndex().toString());
 			from.setText(subUnit.getTimeFrom());
 			to.setText(subUnit.getTimeTo());
 			text.setText(subUnit.getText());
 			
-			JPanel oneRow = new JPanel();
-			oneRow.setLayout(new BoxLayout(oneRow, BoxLayout.X_AXIS));
-			//oneRow.setLayout(new FlowLayout(FlowLayout.LEFT));
-			oneRow.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.BLACK));
+			
             
 			oneRow.add(indexPanel);
 			oneRow.add(fromPanel);
@@ -338,10 +265,12 @@ public class SubtitleFrame extends JFrame{
 			oneRow.add(textPanel);
 			
 			JPanel addButtonPanel = new JPanel();
-			JButton addButon = new JButton("+");
-			addButon.setPreferredSize(new Dimension(addButtonWidth,addButtonHeight));
-			addButtonPanel.add(addButon);
+			JButton addButton = new JButton("+");
+			addButton.setPreferredSize(new Dimension(addButtonWidth,addButtonHeight));
+			addButtonPanel.add(addButton);
 			oneRow.add(addButtonPanel);
+			addButtons.add(new ButtonWrapper(addButton, addButtonRowIndex));
+			addButtonRowIndex++;
 			
 			subtitleUnitPanels.add(oneRow);
 			subtitlesPanel.add(oneRow);
@@ -349,5 +278,133 @@ public class SubtitleFrame extends JFrame{
 		};
 		
 	}
+
+	private void setupHeadingRow(JPanel headingRow, int indexPanelWidth, int startPanelWidth, int endPanelWidth, int textPanelWidth, int addButtonWidth, int addButtonHeight, int marginSize, int headingRowHeight) {
+	
+		JLabel indexLabel = new JLabel("No.");
+		JLabel startLabel = new JLabel("start");
+		JLabel endLabel = new JLabel("end");
+		JLabel textLabel = new JLabel("text");
+		JButton addButon = new JButton("+");
+		
+		JPanel indexHeadingPanel = new JPanel();
+		Border indexBorder = BorderFactory.createMatteBorder(0, 1, 0, 1, Color.BLACK);
+		setupHeadingRowElement(indexHeadingPanel, indexBorder, indexLabel, headingRowColor, new FlowLayout(FlowLayout.LEFT), indexPanelWidth + marginSize, headingRowHeight);
+		headingRow.add(indexHeadingPanel);
+		
+		JPanel startHeadingPanel = new JPanel();
+		Border startBorder = BorderFactory.createMatteBorder(0, 0, 0, 1, Color.BLACK);
+		setupHeadingRowElement(startHeadingPanel, startBorder, startLabel, headingRowColor, new FlowLayout(FlowLayout.LEFT), startPanelWidth + marginSize, headingRowHeight);
+		headingRow.add(startHeadingPanel);
+		
+		JPanel endHeadingPanel = new JPanel();
+		Border endBorder = BorderFactory.createMatteBorder(0, 0, 0, 1, Color.BLACK);
+		setupHeadingRowElement(endHeadingPanel, endBorder, endLabel, headingRowColor, new FlowLayout(FlowLayout.LEFT), endPanelWidth + marginSize, headingRowHeight);
+		headingRow.add(endHeadingPanel);
+		
+		JPanel textHeadingPanel = new JPanel(); 
+		Border textBorder = BorderFactory.createMatteBorder(0, 0, 0, 1, Color.BLACK);
+		setupHeadingRowElement(textHeadingPanel, textBorder, textLabel, headingRowColor, new FlowLayout(FlowLayout.LEFT), textPanelWidth + marginSize, headingRowHeight);
+		headingRow.add(textHeadingPanel);
+		
+		//customized settings for button 
+		//TODO: change this so button is set using setupHeadingRowElement
+		JPanel addButtonPanelHeading = new JPanel();
+		addButon.setPreferredSize(new Dimension(addButtonWidth,addButtonHeight));
+		addButtonPanelHeading.add(addButon);
+		headingRow.add(addButtonPanelHeading);
+		
+		ButtonWrapper headingAddButtonWrapper = new ButtonWrapper(addButon, 0); //index of heading row is 0
+		addButtons.add(headingAddButtonWrapper);
+		addActionListener(headingAddButtonWrapper);
+		
+	}
+
+	private void setupHeadingRowElement(JPanel panel, Border border, JComponent component, Color color, LayoutManager layout, int panelWidth, int panelHeight){
+		
+		panel.add(component);
+		panel.setPreferredSize(new Dimension(panelWidth, panelHeight));
+		if(layout != null) {
+			panel.setLayout(layout);
+		}
+		panel.setBackground(color);
+		panel.setBorder(border);
+	}
+
+	private void setupRows(JPanel oneRow, int indexPanelWidth, int startPanelWidth, int endPanelWidth,
+			int textPanelWidth, int addButtonWidth, int addButtonHeight, int marginSize, int headingRowHeight) {
+		
+		JTextArea index = new JTextArea();			
+		JTextArea from = new JTextArea(); 
+		JTextArea to = new JTextArea();
+		JTextArea text = new JTextArea();
+		
+
+	}
+
+	
+	private void addActionListener(ButtonWrapper headingAddButtonWrapper) {
+		// TODO not implemented yet
+		
+	}
+	
+	private void setSubtitleTextActionListeners(JTextArea text, JPanel textPanel) {
+		
+		text.addKeyListener(new KeyListener() {
+			
+			@Override
+			public void keyTyped(KeyEvent e) {
+
+			}
+			
+			@Override
+			public void keyReleased(KeyEvent e) {
+
+			}
+			
+			@Override
+			public void keyPressed(KeyEvent e) {
+				//key 10 - enter
+				if(e.getKeyCode() == 10) {
+					
+					Dimension textPanelDimension = textPanel.getPreferredSize();
+					textPanel.setPreferredSize(new Dimension(textPanelDimension.width, textPanelDimension.height + 18));
+					
+					Dimension textDimension = text.getPreferredSize();
+					text.setPreferredSize(new Dimension(textDimension.width, textDimension.height + 18));
+					
+				//key 8 - backspace
+				} else if (e.getKeyCode() == 8) {
+					//allow vertical resize only if panel is more then numberOfLines * characterSize tall and not smaller then characterSize
+					int numberOfLines = text.getText().split("\n").length;
+					int condition = numberOfLines > 1 ? numberOfLines * 30 : 30;
+					if (textPanel.getHeight() > condition) { //TODO: ajust this value to be exactly one char tall
+
+						Dimension textPanelDimension = textPanel.getPreferredSize();
+						textPanel.setPreferredSize(new Dimension(textPanelDimension.width, textPanelDimension.height - 18));
+						
+						Dimension textDimension = text.getPreferredSize();
+						text.setPreferredSize(new Dimension(textDimension.width, textDimension.height - 18));
+					}
+				}
+			}
+			
+		});
+
+		
+	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
 

@@ -66,6 +66,8 @@ public class SubtitlesUtil {
 		List<String> buffer = new ArrayList<String>();
 		List<SubtitleUnit> subtitlesUnitsList = new ArrayList<SubtitleUnit>();
 		
+		int rowIndex = 0;
+		
 		for (String line : lines) {
 
 			if (StringUtils.isNotBlank(line)) {
@@ -73,9 +75,9 @@ public class SubtitlesUtil {
 				continue; //add lines to buffer until we come across empty line which indicates the end of the current subtitle on the screen
 			}
 
-			Integer index = null;
+			Integer subtitleIndex = null;
 			try {
-				index = Integer.parseInt(buffer.get(0));
+				subtitleIndex = Integer.parseInt(buffer.get(0));
 			} catch (NumberFormatException e) {
 				// TODO: report error?
 			}
@@ -103,8 +105,9 @@ public class SubtitlesUtil {
 			
 			buffer.clear();
 			
-			SubtitleUnit subUnit = new SubtitleUnit(index, from, to, text);
+			SubtitleUnit subUnit = new SubtitleUnit(rowIndex, subtitleIndex, from, to, text);
 			subtitlesUnitsList.add(subUnit);
+			rowIndex++;
 		}
 
 		return subtitlesUnitsList;
@@ -182,31 +185,36 @@ public class SubtitlesUtil {
 
 	}
 
+	/** Converts text from text areas to list of subtitle units. </br>
+	 * Important - we assume that text areas are in correct order, like in subtitles file, and
+	 * row index is set in order as we iterate through text areas */
 	public static void textAreasToSubtitleUnits(List<JTextArea> textAreas, List<SubtitleUnit> subtitleUnits) {
 		
 		if(subtitleUnits.size() > 0) {
 			subtitleUnits.clear();
 		}
 		
-		//index used for counting 4 text areas as 4 TA represent one subtitle unit (one row in grid in editor)
-		int index = 1;
+		//counter used for counting 4 text areas as 4 TA represent one subtitle unit (one row in grid in editor)
+		int TAcounter = 1;
+		int rowIndex = 0;
 		List<String> currentSubtitleData = new ArrayList<String>(); //text from 4 textAreas
 		
 		for(JTextArea textArea : textAreas) {
 			
 			currentSubtitleData.add(textArea.getText());
 			
-			if(index != 4) {
-				index ++;
+			if(TAcounter != 4) {
+				TAcounter ++;
 			}else {
-				index = 1;
+				TAcounter = 1;
 				
 				Integer subtitleIndex = Integer.parseInt(currentSubtitleData.get(0));
 				String from = currentSubtitleData.get(1);
 				String to  = currentSubtitleData.get(2);
 				String text = currentSubtitleData.get(3);
-				subtitleUnits.add(new SubtitleUnit(subtitleIndex, from, to, text));
+				subtitleUnits.add(new SubtitleUnit(rowIndex, subtitleIndex, from, to, text));
 				currentSubtitleData.clear();
+				rowIndex++; //increment rowIndex every time new subUnit is created
 			}
 			
 		}
@@ -225,7 +233,7 @@ public class SubtitlesUtil {
 		for(SubtitleUnit subUnit : subtitleUnits) {
 			
 			StringBuilder subBuilder = new StringBuilder();
-			subBuilder.append(subUnit.getIndex().toString()).append("\n");
+			subBuilder.append(subUnit.getSubtitleIndex().toString()).append("\n");
 			subBuilder.append(subUnit.getTimeFrom()).append(" --> ").append(subUnit.getTimeTo()).append("\n");
 			subBuilder.append(subUnit.getText());
 			subtitlesAsText.add(subBuilder.toString());

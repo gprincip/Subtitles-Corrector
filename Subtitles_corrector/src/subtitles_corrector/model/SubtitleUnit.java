@@ -8,25 +8,36 @@ package subtitles_corrector.model;
  */
 public class SubtitleUnit {
 	
-	private Integer index;
+	/** Index of the subtitle as specified in the subtitles file */
+	private Integer subtitleIndex;
+	/** Index of the subtitle row in the subtitles grid in editor */
+	private Integer rowIndex;
 	private String timeFrom;
 	private String timeTo;
 	private String text;
 	
 	public SubtitleUnit() {}
 	
-	public SubtitleUnit(Integer index, String timeFrom, String timeTo, String text) {
-		this.index = index;
+	public SubtitleUnit(Integer rowIndex, Integer subtitleIndex, String timeFrom, String timeTo, String text) {
+		this.rowIndex = rowIndex;
+		this.subtitleIndex = subtitleIndex;
 		this.timeFrom = timeFrom;
 		this.timeTo = timeTo;
 		this.text = text;
 	}
 	
-	public Integer getIndex() {
-		return index;
+	
+	public Integer getRowIndex() {
+		return rowIndex;
 	}
-	public void setIndex(Integer index) {
-		this.index = index;
+	public void setRowIndex(Integer rowIndex) {
+		this.rowIndex = rowIndex;
+	}
+	public Integer getSubtitleIndex() {
+		return subtitleIndex;
+	}
+	public void setIndex(Integer subtitleIndex) {
+		this.subtitleIndex = subtitleIndex;
 	}
 	public String getTimeFrom() {
 		return timeFrom;
