@@ -1,5 +1,6 @@
 package subtitles_corrector.frames;
 
+import java.awt.AWTEvent;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -9,6 +10,7 @@ import java.awt.event.KeyListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -59,8 +61,6 @@ public class SubtitleFrame extends JFrame{
 	private List<ButtonWrapper> addButtons;
 	
 	public SubtitleFrame(int width, int height, File subtitlesFile) {
-		
-		super();
 		
 		this.width = width;
 		this.height = height;
@@ -161,6 +161,7 @@ public class SubtitleFrame extends JFrame{
 		 * from subtitle unit (index, from, to, text)
 		 * */
 		
+		//TODO: load this parameters into configuration from somewhere (for ex. properties file)
 		int indexPanelWidth = 40;
 		int startPanelWidth = 100;
 		int endPanelWidth = 100;
@@ -169,118 +170,121 @@ public class SubtitleFrame extends JFrame{
 		int addButtonWidth = 45;
 		int addButtonHeight = 20;
 		
-		int characterHeight = 18; //TODO hight of one character. Make this dinamic, so text areas expand if there are more then one line of code
+		int characterHeight = 18;
 		//int textPanelHeight = 36;
 		int headingRowHeight = 25;
 		
 		int marginSize = 10; //make panels wider then the components inside them so we don't get visual glitches
 		
-		JPanel headingRow = new JPanel();
-		headingRow.setLayout(new BoxLayout(headingRow, BoxLayout.X_AXIS));
-		headingRow.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.BLACK));
+		setupHeadingRow(indexPanelWidth, startPanelWidth, endPanelWidth, textPanelWidth, addButtonWidth, addButtonHeight, marginSize, headingRowHeight);
 		
-		setupHeadingRow(headingRow, indexPanelWidth, startPanelWidth, endPanelWidth, textPanelWidth, addButtonWidth, addButtonHeight, marginSize, headingRowHeight);
-				
-		subtitlesPanel.add(headingRow);
-		
-		int colorCounter = 0;
-		int addButtonRowIndex = 0;
+		//we use atomic here so we can modify this variable from a method (which isn't possible with int or Integer)
+		AtomicInteger colorCounter = new AtomicInteger(0);
+		AtomicInteger addButtonRowIndex = new AtomicInteger(1);
 		for(SubtitleUnit subUnit : subtitleUnits){
-						
-			int panelHeight = characterHeight * (subUnit.getText().split(NEW_LINE_SEPARATOR).length);
-			
-			//create stripes
-			Color currentRowColor = null;
-			
-			if(colorCounter == 0) {
-				currentRowColor = evenColor;
-				colorCounter++;
-			}else {
-				currentRowColor = oddColor;
-				colorCounter = 0;
-			}
-			
-			JPanel oneRow = new JPanel();
-			oneRow.setLayout(new BoxLayout(oneRow, BoxLayout.X_AXIS));
-			//oneRow.setLayout(new FlowLayout(FlowLayout.LEFT));
-			oneRow.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.BLACK));
-			
-			//make 4 textfields representing data for one subtitle unit
-			//create panel for each component so size can be manualy adjusted using setPreferedSize
-			
-			setupRows(oneRow, indexPanelWidth, startPanelWidth, endPanelWidth, textPanelWidth, addButtonWidth, addButtonHeight, marginSize, headingRowHeight);
-			
-			JTextArea index = new JTextArea();			
-			textAreas.add(index);
-			index.setPreferredSize(new Dimension(indexPanelWidth, characterHeight));
-			JPanel indexPanel = new JPanel();
-			indexPanel.add(index); 
-			indexPanel.setPreferredSize(new Dimension(indexPanelWidth + marginSize, characterHeight + marginSize));
-			indexPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
-			indexPanel.setBackground(currentRowColor);
-			indexPanel.setBorder(BorderFactory.createMatteBorder(0, 1, 0, 1, Color.BLACK));
-			
-			JTextArea from = new JTextArea(); 
-			textAreas.add(from);
-			from.setPreferredSize(new Dimension(startPanelWidth, characterHeight));
-			JPanel fromPanel = new JPanel(); 
-			fromPanel.add(from); 
-			fromPanel.setPreferredSize(new Dimension(startPanelWidth + marginSize, characterHeight + marginSize));
-			fromPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
-			fromPanel.setBackground(currentRowColor);
-			fromPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, Color.BLACK));
-			
-			JTextArea to = new JTextArea();
-			textAreas.add(to);
-			to.setPreferredSize(new Dimension(endPanelWidth, characterHeight));
-			JPanel toPanel = new JPanel(); 
-			toPanel.add(to); 
-			toPanel.setPreferredSize(new Dimension(endPanelWidth + marginSize, characterHeight + marginSize));
-			toPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
-			toPanel.setBackground(currentRowColor);
-			toPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, Color.BLACK));
-			
-			JTextArea text = new JTextArea();
-			textAreas.add(text);
-			text.setPreferredSize(new Dimension(textPanelWidth, panelHeight));
-			JPanel textPanel = new JPanel(); 
-			textPanel.add(text); 
-			textPanel.setPreferredSize(new Dimension(textPanelWidth + marginSize, panelHeight + marginSize));
-			textPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
-			textPanel.setBackground(currentRowColor);
-			textPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, Color.BLACK));
 
-			setSubtitleTextActionListeners(text, textPanel);
-			
-			index.setText(subUnit.getSubtitleIndex().toString());
-			from.setText(subUnit.getTimeFrom());
-			to.setText(subUnit.getTimeTo());
-			text.setText(subUnit.getText());
-			
-			
-            
-			oneRow.add(indexPanel);
-			oneRow.add(fromPanel);
-			oneRow.add(toPanel);
-			oneRow.add(textPanel);
-			
-			JPanel addButtonPanel = new JPanel();
-			JButton addButton = new JButton("+");
-			addButton.setPreferredSize(new Dimension(addButtonWidth,addButtonHeight));
-			addButtonPanel.add(addButton);
-			oneRow.add(addButtonPanel);
-			addButtons.add(new ButtonWrapper(addButton, addButtonRowIndex));
-			addButtonRowIndex++;
-			
-			subtitleUnitPanels.add(oneRow);
-			subtitlesPanel.add(oneRow);
+			setupOneRow(characterHeight, subUnit, colorCounter, addButtonRowIndex, indexPanelWidth, marginSize, startPanelWidth, endPanelWidth, textPanelWidth,
+					addButtonWidth, addButtonHeight);
 			
 		};
 		
 	}
-
-	private void setupHeadingRow(JPanel headingRow, int indexPanelWidth, int startPanelWidth, int endPanelWidth, int textPanelWidth, int addButtonWidth, int addButtonHeight, int marginSize, int headingRowHeight) {
 	
+	private void setupOneRow(int characterHeight, SubtitleUnit subUnit, AtomicInteger colorCounter, AtomicInteger addButtonRowIndex, int indexPanelWidth, int marginSize,
+			int startPanelWidth, int endPanelWidth, int textPanelWidth, int addButtonWidth, int addButtonHeight) {
+		
+		int panelHeight = characterHeight * (subUnit.getText().split(NEW_LINE_SEPARATOR).length);
+		
+		//create stripes
+		Color currentRowColor = null;
+		
+		if(colorCounter.get() == 0) {
+			currentRowColor = evenColor;
+			colorCounter.getAndIncrement();
+		}else {
+			currentRowColor = oddColor;
+			colorCounter.getAndSet(0);
+		}
+		
+		JPanel oneRow = new JPanel();
+		oneRow.setLayout(new BoxLayout(oneRow, BoxLayout.X_AXIS));
+		oneRow.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.BLACK));
+		
+		//make 4 textfields representing data for one subtitle unit
+		//create panel for each component so size can be manualy adjusted using setPreferedSize
+					
+		JTextArea index = new JTextArea();			
+		JPanel indexPanel = new JPanel();
+		setupOneRowElement(index, indexPanel, indexPanelWidth, characterHeight, indexPanelWidth + marginSize, characterHeight + marginSize, new FlowLayout(FlowLayout.LEFT), currentRowColor,
+				BorderFactory.createMatteBorder(0, 1, 0, 1, Color.BLACK));
+		textAreas.add(index);
+		
+		JTextArea from = new JTextArea(); 
+		textAreas.add(from);
+		JPanel fromPanel = new JPanel(); 
+		setupOneRowElement(from, fromPanel, startPanelWidth, characterHeight, startPanelWidth + marginSize, characterHeight + marginSize, new FlowLayout(FlowLayout.LEFT), currentRowColor,
+				BorderFactory.createMatteBorder(0, 0, 0, 1, Color.BLACK));
+		
+		JTextArea to = new JTextArea();
+		textAreas.add(to);
+		JPanel toPanel = new JPanel(); 
+		setupOneRowElement(to, toPanel, endPanelWidth, characterHeight, endPanelWidth + marginSize, characterHeight + marginSize, new FlowLayout(FlowLayout.LEFT), currentRowColor,
+				BorderFactory.createMatteBorder(0, 0, 0, 1, Color.BLACK));
+		
+		JTextArea text = new JTextArea();
+		textAreas.add(text);
+		JPanel textPanel = new JPanel(); 
+		setupOneRowElement(text, textPanel, textPanelWidth, panelHeight, textPanelWidth + marginSize, panelHeight + marginSize, new FlowLayout(FlowLayout.LEFT), currentRowColor,
+				BorderFactory.createMatteBorder(0, 0, 0, 1, Color.BLACK));
+		
+		setSubtitleTextActionListeners(text, textPanel);
+		
+		index.setText(subUnit.getSubtitleIndex().toString());
+		from.setText(subUnit.getTimeFrom());
+		to.setText(subUnit.getTimeTo());
+		text.setText(subUnit.getText());
+        
+		JButton addButton = new JButton("+");
+		
+		oneRow.add(indexPanel);
+		oneRow.add(fromPanel);
+		oneRow.add(toPanel);
+		oneRow.add(textPanel);
+		setupHeadingRowAddButton(oneRow, addButtonWidth, addButtonHeight, addButton, addButtonRowIndex.getAndIncrement());
+		subtitleUnitPanels.add(oneRow);
+		subtitlesPanel.add(oneRow);
+		
+	}
+
+
+	/**
+	 * Sets up one element of subtitle unit
+	 */
+	private void setupOneRowElement(JComponent component, JPanel panel, int componentWidth, int componentHeight, int panelWidth, int panelHeight, LayoutManager layout, Color background, Border border) {
+
+		component.setPreferredSize(new Dimension(componentWidth, componentHeight));
+		panel.add(component);
+		panel.setPreferredSize(new Dimension(panelWidth, panelHeight));
+		if(layout != null) {
+			panel.setLayout(layout);
+		}
+
+		if(background != null) {
+			panel.setBackground(background);
+		}
+
+		if(border != null) {
+			panel.setBorder(border);
+		}
+		
+	}
+	
+	private void setupHeadingRow(int indexPanelWidth, int startPanelWidth, int endPanelWidth, int textPanelWidth, int addButtonWidth, int addButtonHeight, int marginSize, int headingRowHeight) {
+	
+		JPanel headingRow = new JPanel();
+		headingRow.setLayout(new BoxLayout(headingRow, BoxLayout.X_AXIS));
+		headingRow.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.BLACK));
+		
 		JLabel indexLabel = new JLabel("No.");
 		JLabel startLabel = new JLabel("start");
 		JLabel endLabel = new JLabel("end");
@@ -307,17 +311,28 @@ public class SubtitleFrame extends JFrame{
 		setupHeadingRowElement(textHeadingPanel, textBorder, textLabel, headingRowColor, new FlowLayout(FlowLayout.LEFT), textPanelWidth + marginSize, headingRowHeight);
 		headingRow.add(textHeadingPanel);
 		
-		//customized settings for button 
-		//TODO: change this so button is set using setupHeadingRowElement
+		setupHeadingRowAddButton(headingRow, addButtonWidth, addButtonHeight, addButon, 0);
+		subtitlesPanel.add(headingRow);
+	}
+
+
+	/**
+	 * 
+	 * @param row
+	 * @param addButtonWidth
+	 * @param addButtonHeight
+	 * @param addButon
+	 * @param buttonIndex index of the subtitle unit
+	 */
+	private void setupHeadingRowAddButton(JPanel row, int addButtonWidth, int addButtonHeight, JButton addButon, int buttonIndex) {
 		JPanel addButtonPanelHeading = new JPanel();
 		addButon.setPreferredSize(new Dimension(addButtonWidth,addButtonHeight));
 		addButtonPanelHeading.add(addButon);
-		headingRow.add(addButtonPanelHeading);
+		row.add(addButtonPanelHeading);
 		
-		ButtonWrapper headingAddButtonWrapper = new ButtonWrapper(addButon, 0); //index of heading row is 0
-		addButtons.add(headingAddButtonWrapper);
-		addActionListener(headingAddButtonWrapper);
-		
+		ButtonWrapper addButtonWrapper = new ButtonWrapper(addButon, buttonIndex);
+		addButtons.add(addButtonWrapper);
+		addActionListener(addButtonWrapper);
 	}
 
 	private void setupHeadingRowElement(JPanel panel, Border border, JComponent component, Color color, LayoutManager layout, int panelWidth, int panelHeight){
@@ -330,21 +345,19 @@ public class SubtitleFrame extends JFrame{
 		panel.setBackground(color);
 		panel.setBorder(border);
 	}
-
-	private void setupRows(JPanel oneRow, int indexPanelWidth, int startPanelWidth, int endPanelWidth,
-			int textPanelWidth, int addButtonWidth, int addButtonHeight, int marginSize, int headingRowHeight) {
-		
-		JTextArea index = new JTextArea();			
-		JTextArea from = new JTextArea(); 
-		JTextArea to = new JTextArea();
-		JTextArea text = new JTextArea();
-		
-
-	}
-
 	
-	private void addActionListener(ButtonWrapper headingAddButtonWrapper) {
-		// TODO not implemented yet
+	private void addActionListener(ButtonWrapper addButtonWrapper) {
+		
+		JButton button = addButtonWrapper.getButton();
+		button.addActionListener(actionEvent -> {
+			
+			if(actionEvent.getID() == 1001) { //1001 probably is the mouse click event id
+			
+				//TODO: Add new row
+				
+			}
+			
+		});
 		
 	}
 	
@@ -393,18 +406,6 @@ public class SubtitleFrame extends JFrame{
 
 		
 	}
+	
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
 
