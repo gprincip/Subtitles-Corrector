@@ -1,4 +1,4 @@
-package configuration;
+package subtitles_corrector.configuration;
 
 /**
  * Class used for storing configuration of subtitleFrame (editor)

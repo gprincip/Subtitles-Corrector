@@ -24,7 +24,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.border.Border;
 
-import configuration.SubtitleFrameConfiguration;
+import subtitles_corrector.configuration.SubtitleFrameConfiguration;
 import subtitles_corrector.model.ButtonWrapper;
 import subtitles_corrector.model.SubtitleUnit;
 import subtitles_corrector.threads.DelayedActionThread;
