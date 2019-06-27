@@ -244,5 +244,37 @@ public class SubtitlesUtil {
 		
 	}
 	
+	/**
+	 * Adds subtitleUnit to subtitleUnit list at specified index and updates indexes of other subUnits in the list
+	 * 
+	 * @param subUnit to be added to the list
+	 * @param subtitleUnitList ti which subUnit is added
+	 * @param index on which the subUnit is added
+	 * @return
+	 */
+	public static List<SubtitleUnit> addSubtitleUnitToSubtitleUnitList(SubtitleUnit subUnit, List<SubtitleUnit> subtitleUnitList, int index){
+		
+		subUnit.setIndex(index); //set index just in case
+		subtitleUnitList.add(index, subUnit);
+		
+		for(int i=index + 1; i<subtitleUnitList.size(); i++) {
+			
+			subtitleUnitList.get(i).setIndex(i+1); //update the index
+			
+		}
+		
+		return subtitleUnitList;
+	}
+	
 }
+
+
+
+
+
+
+
+
+
+
 

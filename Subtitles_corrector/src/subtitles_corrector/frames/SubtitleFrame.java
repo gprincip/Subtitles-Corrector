@@ -24,6 +24,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.border.Border;
 
+import configuration.SubtitleFrameConfiguration;
 import subtitles_corrector.model.ButtonWrapper;
 import subtitles_corrector.model.SubtitleUnit;
 import subtitles_corrector.threads.DelayedActionThread;
@@ -72,6 +73,12 @@ public class SubtitleFrame extends JFrame{
 		initFields();
 		addActionListeners();
 		displaySubtitles(subtitleUnits);
+
+		/*
+		 * addNewSubtitleUnit(5); addNewSubtitleUnit(10); addNewSubtitleUnit(11);
+		 * displaySubtitles(subtitleUnits);
+		 */
+		
 		addPanels();
 		
 		setVisible(true);
@@ -160,37 +167,22 @@ public class SubtitleFrame extends JFrame{
 		 * every row has box layout and consists of 4 panels every panel has one attribute
 		 * from subtitle unit (index, from, to, text)
 		 * */
-		
-		//TODO: load this parameters into configuration from somewhere (for ex. properties file)
-		int indexPanelWidth = 40;
-		int startPanelWidth = 100;
-		int endPanelWidth = 100;
-		int textPanelWidth = 300;
-		
-		int addButtonWidth = 45;
-		int addButtonHeight = 20;
-		
-		int characterHeight = 18;
-		//int textPanelHeight = 36;
-		int headingRowHeight = 25;
-		
-		int marginSize = 10; //make panels wider then the components inside them so we don't get visual glitches
-		
-		setupHeadingRow(indexPanelWidth, startPanelWidth, endPanelWidth, textPanelWidth, addButtonWidth, addButtonHeight, marginSize, headingRowHeight);
+				
+		setupHeadingRow(SubtitleFrameConfiguration.indexPanelWidth, SubtitleFrameConfiguration.startPanelWidth, SubtitleFrameConfiguration.endPanelWidth, 
+				SubtitleFrameConfiguration.textPanelWidth, SubtitleFrameConfiguration.addButtonWidth, SubtitleFrameConfiguration.addButtonHeight, SubtitleFrameConfiguration.marginSize, SubtitleFrameConfiguration.headingRowHeight);
 		
 		//we use atomic here so we can modify this variable from a method (which isn't possible with int or Integer)
-		AtomicInteger colorCounter = new AtomicInteger(0);
-		AtomicInteger addButtonRowIndex = new AtomicInteger(1);
 		for(SubtitleUnit subUnit : subtitleUnits){
 
-			setupOneRow(characterHeight, subUnit, colorCounter, addButtonRowIndex, indexPanelWidth, marginSize, startPanelWidth, endPanelWidth, textPanelWidth,
-					addButtonWidth, addButtonHeight);
+			setupOneRow(SubtitleFrameConfiguration.characterHeight, subUnit, SubtitleFrameConfiguration.indexPanelWidth, SubtitleFrameConfiguration.marginSize, 
+					SubtitleFrameConfiguration.startPanelWidth, SubtitleFrameConfiguration.endPanelWidth, SubtitleFrameConfiguration.textPanelWidth,
+					SubtitleFrameConfiguration.addButtonWidth, SubtitleFrameConfiguration.addButtonHeight);
 			
 		};
 		
 	}
 	
-	private void setupOneRow(int characterHeight, SubtitleUnit subUnit, AtomicInteger colorCounter, AtomicInteger addButtonRowIndex, int indexPanelWidth, int marginSize,
+	private void setupOneRow(int characterHeight, SubtitleUnit subUnit, int indexPanelWidth, int marginSize,
 			int startPanelWidth, int endPanelWidth, int textPanelWidth, int addButtonWidth, int addButtonHeight) {
 		
 		int panelHeight = characterHeight * (subUnit.getText().split(NEW_LINE_SEPARATOR).length);
@@ -198,12 +190,10 @@ public class SubtitleFrame extends JFrame{
 		//create stripes
 		Color currentRowColor = null;
 		
-		if(colorCounter.get() == 0) {
+		if(subUnit.getRowIndex() % 2 == 0) {
 			currentRowColor = evenColor;
-			colorCounter.getAndIncrement();
 		}else {
 			currentRowColor = oddColor;
-			colorCounter.getAndSet(0);
 		}
 		
 		JPanel oneRow = new JPanel();
@@ -250,7 +240,7 @@ public class SubtitleFrame extends JFrame{
 		oneRow.add(fromPanel);
 		oneRow.add(toPanel);
 		oneRow.add(textPanel);
-		setupHeadingRowAddButton(oneRow, addButtonWidth, addButtonHeight, addButton, addButtonRowIndex.getAndIncrement());
+		setupHeadingRowAddButton(oneRow, addButtonWidth, addButtonHeight, addButton, subUnit.getRowIndex()+1); //first subunit has index 0, but is actually second row (after heading row)
 		subtitleUnitPanels.add(oneRow);
 		subtitlesPanel.add(oneRow);
 		
@@ -353,7 +343,8 @@ public class SubtitleFrame extends JFrame{
 			
 			if(actionEvent.getID() == 1001) { //1001 probably is the mouse click event id
 			
-				//TODO: Add new row
+				System.out.println(addButtonWrapper.getIndex());
+				addNewSubtitleUnit(addButtonWrapper.getIndex());
 				
 			}
 			
@@ -361,6 +352,20 @@ public class SubtitleFrame extends JFrame{
 		
 	}
 	
+	/**
+	 * Adds new subtitles unit to existing list based on the add button (+) index that was pressed and draws it on GUI
+	 * @param buttonIndex
+	 */
+	private void addNewSubtitleUnit(Integer buttonIndex) {
+		
+		SubtitleUnit subUnit = new SubtitleUnit(buttonIndex+1, 000, "*************", "*************", "*************");
+		SubtitlesUtil.addSubtitleUnitToSubtitleUnitList(subUnit, subtitleUnits, buttonIndex);
+		setupOneRow(SubtitleFrameConfiguration.characterHeight, subUnit, SubtitleFrameConfiguration.indexPanelWidth, SubtitleFrameConfiguration.marginSize, 
+				SubtitleFrameConfiguration.startPanelWidth, SubtitleFrameConfiguration.endPanelWidth, SubtitleFrameConfiguration.textPanelWidth,
+				SubtitleFrameConfiguration.addButtonWidth, SubtitleFrameConfiguration.addButtonHeight);
+		revalidate();
+	}
+
 	private void setSubtitleTextActionListeners(JTextArea text, JPanel textPanel) {
 		
 		text.addKeyListener(new KeyListener() {
